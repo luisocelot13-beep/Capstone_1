@@ -12,7 +12,7 @@ where Store_ID in (SELECT StoreId FROM store_locations
 where state like "New Jersey")) +
 (select sum(SalesTotal)
 from online_sales
-where ShiptoState like "New Jersey") as "total_revenue";
+where ShiptoState like "New Jersey") as total_revenue;
   -- Total Revenue '7400979.24'
   
 -- finding starting and ending dates
@@ -61,6 +61,35 @@ group by month
 order by month;
 
 /* 3.) Provide a comparison of total revenue for the specific sales territory and the region it belongs to.*/
+select 
+(SELECT sum(Sale_Amount)
+from store_sales
+where Store_ID in (SELECT StoreId FROM store_locations
+where state like "New Jersey")) +
+(select sum(SalesTotal)
+from online_sales
+where ShiptoState like "New Jersey") as total_revenue;
+  -- Total Revenue '7400979.24' jersey area
+  
+   -- using join to get total revenue for states in region
+  --  ''19062121.11' TOTAL
+
+ select sum(Sale_Amount) as revenue
+ from store_sales as s
+join store_locations as sl
+on s.Store_ID = sl.StoreId
+where sl.State in ('Maryland','Massachusetts','Maine');
+
+-- used subqueries to find total revenue for the north east region
+SELECT  sum(SalesTotal)
+FROM online_sales
+where ShiptoState in (SELECT state
+FROM management
+where Region like "Northeast");
+-- '8609433.67' TOTAL
+
+
+
 
 /*4.) What is the number of transactions per month and average transaction size by product category
 for the sales territory?*/
