@@ -72,13 +72,13 @@ where ShiptoState like "New Jersey") as total_revenue;
   -- Total Revenue '7400979.24' jersey area
   
    -- using join to get total revenue for states in region
-  --  ''19062121.11' TOTAL
 
  select sum(Sale_Amount) as revenue
  from store_sales as s
 join store_locations as sl
 on s.Store_ID = sl.StoreId
 where sl.State in ('Maryland','Massachusetts','Maine');
+ --  ''19062121.11' TOTAL
 
 -- used subqueries to find total revenue for the north east region
 SELECT  sum(SalesTotal)
@@ -93,9 +93,48 @@ where Region like "Northeast");
 
 /*4.) What is the number of transactions per month and average transaction size by product category
 for the sales territory?*/
+-- online sales transaction counts,avg trasanction size
+select date_format(os.date,'%Y-%m')as month ,Category,count(SalesTotal) as transaction_counts,avg(os.SalesTotal) as avg_transaction_size
+from online_sales as os
+join products as p
+on os.ProdNum = p.ProdNum 
+join inventory_categories as ic
+on ic.Categoryid = p.Categoryid
+where ShiptoState like "New Jersey"
+group by month,Category;
+
+-- store sales transaction counts,avg transaction size
+select date_format(transaction_Date,'%Y-%m')as month,Category,count(*) as trans_count,avg(ss.Sale_Amount) as avg_trans_size
+from store_sales as ss
+join products as p
+on ss.Prod_Num = p.ProdNum
+join inventory_categories as ic
+on ic.Categoryid = p.Categoryid
+-- used subquuey in order to find storeid related to my state territory
+where ss.Store_ID in (SELECT StoreId
+FROM store_locations
+where state like "New Jersey")
+group by month,Category;
+
+
 
 /*5.) Can you provide a ranking of in-store sales performance by each store in the sales territory, or a
 ranking of online sales performance by state within an online sales territory?*/
+ select Store_ID,sum(Sale_Amount) as total_amount,
+ CASE
+ when sum(Sale_Amount)  <= 207725.00 then "Poor performance"
+ when sum(Sale_Amount)  BETWEEN 207725.00 AND  415450.00 then "Medium Performance"
+ else "GREAT PERFORMANCE"
+ END AS PERFORMANCE_RANKING
+ 
+ from store_sales
+ WHERE Store_ID in(SELECT StoreId
+FROM store_locations
+where state like "New Jersey")
+group by Store_ID
+order by total_amount desc;
+
+ 
 
 /*6.) What is your recommendation for where to focus sales attention in the next quarter?
 */
