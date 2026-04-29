@@ -27,7 +27,7 @@ select date_format(transaction_Date,'%Y-%m') as month,sum(Sale_Amount) as revenu
 from store_sales -- table store_sales
 JOIN store_locations -- join store locations table
 on store_sales.Store_ID = store_locations.StoreId -- matching columns
-where store_locations.State like "New Jersey" -- filter to use where  in store location table with state new jersey to be able to get 
+where store_locations.State like "New Jersey" -- filter to use where  in store location table with state new jersey to be able to get store id's
 group by month
 order by month;
 
@@ -35,28 +35,29 @@ order by month;
   
    -- using join to get total revenue for states in region for store_sales
 
- select sl.state,sum(Sale_Amount) as revenue
- from store_sales as s
-join store_locations as sl
-on s.Store_ID = sl.StoreId
-where sl.State in ('Maryland','Massachusetts','Maine','New Jersey')
-group by sl.state
-order by revenue desc;
- --  '19062121.11' TOTAL
- -- 'Maryland', '11451615.09'
--- 'Massachusetts', '5733256.27'
---  'Maine', '1877249.75'
--- 'New Jersey', '5175417.99'  #3
+ select sl.state,sum(Sale_Amount) as revenue -- select state and sum sale amounts
+ from store_sales as s    -- from store sales table
+join store_locations as sl  -- join store locations to get states
+on s.Store_ID = sl.StoreId -- matching columns
+where sl.State in ('Maryland','Massachusetts','Maine','New Jersey') -- where function to get states in region
+group by sl.state -- grouping by state to see individual revenues
+order by revenue desc; -- order by biggest revenue to smallest to see what state is doing well
+/*'Maryland', '11451615.09'
+'Massachusetts', '5733256.27'
+'New Jersey', '5175417.99' #3
+'Maine', '1877249.75'*/
+
 
 
 /*4.) What is the number of transactions per month and average transaction size by product category
 for the sales territory?*/
 
 -- store sales transaction counts,avg transaction size
-select date_format(transaction_Date,'%Y-%m')as month,Category,count(*) as trans_count,avg(ss.Sale_Amount) as avg_trans_size
+select date_format(transaction_Date,'%Y-%m')as month,Category,count(*) as trans_count,avg(ss.Sale_Amount) as avg_trans_size 
 from store_sales as ss
 join products as p
-on ss.Prod_Num = p.ProdNum
+on ss.Prod_Num = p.ProdNum          -- JOINS I USED THESE 3 TABLES IN ORDER TO GET DATES,CATEGORY AND AVG Sale_Amount ,
+                                    -- I NEEDED CATEGORY FOR PRODUCTS SO I JOINED INVENTORY Category TO CONNECT CATEGORY AND PRODUCTS.
 join inventory_categories as ic
 on ic.Categoryid = p.Categoryid
 
@@ -65,9 +66,9 @@ where ss.Store_ID in (SELECT StoreId
 FROM store_locations
 where state like "New Jersey")
 group by month,Category
--- reason I included order by is to see what products we arent as strong in for avg transaction size,
--- in order to focus on those product/categories.
-order by avg_trans_size asc;
+order by avg_trans_size asc;                       -- reason I included order by is to see what products we arent as strong in for avg transaction size,
+                                                    -- in order to focus on those product/categories.
+
 
 /*5.) Can you provide a ranking of in-store sales performance by each store in the sales territory, or a
 ranking of online sales performance by state within an online sales territory?*/
@@ -75,7 +76,7 @@ ranking of online sales performance by state within an online sales territory?*/
  select Store_ID,sum(Sale_Amount) as total_amount,
  
  CASE
- when sum(Sale_Amount)  <= 207725.00 then "Poor performance"
+ when sum(Sale_Amount)  <= 207725.00 then "Poor performance"                           -- USED A CASE STATEMENT TO RATE THERE PERFORMANCE 
  when sum(Sale_Amount)  BETWEEN 207725.00 AND  415450.00 then "Medium Performance"
  else "GREAT PERFORMANCE"
  END AS PERFORMANCE_RANKING
@@ -83,7 +84,7 @@ ranking of online sales performance by state within an online sales territory?*/
  
  WHERE Store_ID in(SELECT StoreId
 FROM store_locations
-where state like "New Jersey")
+where state like "New Jersey")    			-- USED A SUBQUERY TO USE STORE LOCATIONS TABLE TO USE THE WHERE FILTER TO LOCATE THE STORE_ID UNDER THE NEW JERSEY STATE
 group by Store_ID
 order by total_amount desc;
 
