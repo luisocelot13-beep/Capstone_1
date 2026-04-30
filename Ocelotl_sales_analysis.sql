@@ -32,12 +32,14 @@ group by month
 order by month;
 
 /* 3.) Provide a comparison of total revenue for the specific sales territory and the region it belongs to.*/
+SELECT state FROM management
+where region like 'Northeast'; -- gets all states in my region
   
    -- using join to get total revenue for states in region for store_sales
 
  select sl.state,sum(Sale_Amount) as revenue -- select state and sum sale amounts
  from store_sales as s    -- from store sales table
-join store_locations as sl  -- join store locations to get states
+join store_locations as sl  -- join store locations to get access to search by state
 on s.Store_ID = sl.StoreId -- matching columns
 where sl.State in ('Maryland','Massachusetts','Maine','New Jersey') -- where function to get states in region
 group by sl.state -- grouping by state to see individual revenues
@@ -55,10 +57,10 @@ for the sales territory?*/
 -- store sales transaction counts,avg transaction size
 select date_format(transaction_Date,'%Y-%m')as month,Category,count(*) as trans_count,avg(ss.Sale_Amount) as avg_trans_size 
 from store_sales as ss
-join products as p
+join products as p					-- aggregate functions count,avg to find the transaction per month and transaction size by product category
 on ss.Prod_Num = p.ProdNum          -- JOINS I USED THESE 3 TABLES IN ORDER TO GET DATES,CATEGORY AND AVG Sale_Amount ,
                                     -- I NEEDED CATEGORY FOR PRODUCTS SO I JOINED INVENTORY Category TO CONNECT CATEGORY AND PRODUCTS.
-join inventory_categories as ic
+join inventory_categories as ic 
 on ic.Categoryid = p.Categoryid
 
 -- used subquuey in order to find storeid related to my state territory
@@ -66,7 +68,8 @@ where ss.Store_ID in (SELECT StoreId
 FROM store_locations
 where state like "New Jersey")
 group by month,Category
-order by avg_trans_size asc;                       -- reason I included order by is to see what products we arent as strong in for avg transaction size,
+order by trans_count asc
+;               -- reason I included order by is to see what products we arent as strong in for avg transaction size,
                                                     -- in order to focus on those product/categories.
 
 
@@ -77,7 +80,8 @@ ranking of online sales performance by state within an online sales territory?*/
  
  CASE
  when sum(Sale_Amount)  <= 207725.00 then "Poor performance"                           -- USED A CASE STATEMENT TO RATE THERE PERFORMANCE 
- when sum(Sale_Amount)  BETWEEN 207725.00 AND  415450.00 then "Medium Performance"
+ when sum(Sale_Amount)  BETWEEN 207725.00 AND  415450.00 then "Medium Performance"			-- I got the total revenue from first question divided by 3 and labeled each 1/3
+																							-- a performance rating
  else "GREAT PERFORMANCE"
  END AS PERFORMANCE_RANKING
  from store_sales
@@ -85,10 +89,10 @@ ranking of online sales performance by state within an online sales territory?*/
  WHERE Store_ID in(SELECT StoreId
 FROM store_locations
 where state like "New Jersey")    			-- USED A SUBQUERY TO USE STORE LOCATIONS TABLE TO USE THE WHERE FILTER TO LOCATE THE STORE_ID UNDER THE NEW JERSEY STATE
-group by Store_ID
+group by Store_ID							-- group by store id to get their individual totals,order by to see best performing stores.
 order by total_amount desc;
 
--- FOCUS ON STORE_ID: 837
+-- FOCUS ON STORE_ID: 837 
 
  
 /*6.) What is your recommendation for where to focus sales attention in the next quarter?
